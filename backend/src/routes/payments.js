@@ -8,7 +8,7 @@ import { env } from "../config.js";
 const publicParams = z.object({ token: z.string().length(64).regex(/^[a-f0-9]+$/) });
 const txParams = publicParams.extend({ hash: z.string().regex(/^(?:0x)?[a-f\d]{64}$/i, "Transaction hash must be 32-byte hexadecimal") });
 export async function paymentRoutes(app) {
-    const simulatorEnabled = () => env.NODE_ENV !== "production" && env.PAYMENT_SIMULATOR_ENABLED;
+    const simulatorEnabled = () => (env.VERCEL_ENV ? env.VERCEL_ENV !== "production" : env.NODE_ENV !== "production") && env.PAYMENT_SIMULATOR_ENABLED;
     const simulationUnavailable = (reply) => reply.code(404).send({ error: "Local payment simulation is disabled" });
     async function simulatorDeal(token) {
         return store.deal.findUnique({ where: { publicTokenHash: createHash("sha256").update(token).digest("hex") } });

@@ -3,7 +3,8 @@ import { z } from "zod";
 import { isAddress } from "viem";
 const envSchema = z.object({
     NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
-    HOST: z.string().default("127.0.0.1"),
+    VERCEL_ENV: z.enum(["development", "preview", "production"]).optional(),
+    HOST: z.string().default("0.0.0.0"),
     PORT: z.coerce.number().int().positive().default(4000),
     DATA_FILE: z.string().default("./data/roqlock.json"),
     PAYMENT_SIMULATOR_ENABLED: z.enum(["true", "false"]).default("false").transform((value) => value === "true"),

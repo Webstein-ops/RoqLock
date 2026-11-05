@@ -7,7 +7,8 @@ import Fastify from "fastify";
 import test, { after } from "node:test";
 
 const directory = await mkdtemp(join(tmpdir(), "roqlock-simulator-"));
-process.env.NODE_ENV = "test";
+process.env.NODE_ENV = "production";
+process.env.VERCEL_ENV = "preview";
 process.env.JWT_SECRET = "simulator-test-secret-at-least-thirty-two-characters";
 process.env.DATA_FILE = join(directory, "state.json");
 process.env.PAYMENT_SIMULATOR_ENABLED = "true";

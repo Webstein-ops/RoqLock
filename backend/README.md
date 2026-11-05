@@ -4,6 +4,8 @@ Backend for RoqLock using Fastify and JavaScript. Records are persisted in a loc
 
 Frontend integration and the Base Sepolia transaction flow are documented in [FRONTEND_INTEGRATION.md](./FRONTEND_INTEGRATION.md) and [API.md](./API.md).
 
+For a Vercel Preview demo, follow [VERCEL_DEPLOY.md](./VERCEL_DEPLOY.md). Its `/tmp` storage is temporary and demo-only.
+
 ## Current scope
 
 - Seller/buyer registration and login with Argon2id password hashes and short-lived JWTs.

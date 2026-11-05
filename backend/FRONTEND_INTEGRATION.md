@@ -31,7 +31,7 @@ Keep the token in the frontend's chosen secure session storage. Never ask the ba
 
 ## Local checkout simulation while Roqqu is unavailable
 
-This is a local backend simulator for connecting and demonstrating checkout UI. It is not a Roqqu integration, payment processor, or substitute for a real escrow transaction. Set `PAYMENT_SIMULATOR_ENABLED=true` in the backend `.env` for development. It is disabled whenever `NODE_ENV=production`, even if the flag is accidentally left on.
+This is a backend simulator for connecting and demonstrating checkout UI. It is not a Roqqu integration, payment processor, or substitute for a real escrow transaction. Set `PAYMENT_SIMULATOR_ENABLED=true` for development or Vercel Preview. The simulator is disabled in Vercel Production, even if the flag is accidentally left on.
 
 1. Start a session with `POST /api/payments/public/:token/simulator`. The token comes from the seller's `publicUrl`.
 2. The response includes the payment ID, amount, current status, and action URLs. The new session starts as `SIMULATED_PENDING`.
