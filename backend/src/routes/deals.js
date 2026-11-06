@@ -5,7 +5,7 @@ import { env } from "../config.js";
 import { store } from "../db.js";
 import { minorToUsdc, usdcToMinor } from "../domain/money.js";
 import { canTransitionDeal } from "../domain/deal-state.js";
-const addressSchema = z.string().trim().refine(isAddress, "Invalid EVM address");
+const addressSchema = z.string().refine(isAddress, "Invalid EVM address");
 const createSchema = z.object({
     title: z.string().trim().min(1).max(120),
     description: z.string().trim().min(1).max(5000),
