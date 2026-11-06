@@ -32,14 +32,6 @@ app.get("/health", async (_request, reply) => {
         return reply.code(503).send({ status: "unavailable", storage: "unavailable" });
     }
 });
-await app.register(authRoutes, { prefix: "/api/auth" });
-await app.register(userRoutes, { prefix: "/api/users" });
-await app.register(dealRoutes, { prefix: "/api/deals" });
-await app.register(transactionRoutes, { prefix: "/api/transactions" });
-await app.register(disputeRoutes, { prefix: "/api/disputes" });
-await app.register(notificationRoutes, { prefix: "/api/notifications" });
-await app.register(webhookRoutes, { prefix: "/api/webhooks" });
-await app.register(paymentRoutes, { prefix: "/api/payments" });
 app.setErrorHandler((error, request, reply) => {
     if (error instanceof ZodError) {
         return reply.code(400).send({ error: "Invalid request", details: error.issues.map(({ path, message }) => ({ path, message })) });
@@ -53,6 +45,14 @@ app.setErrorHandler((error, request, reply) => {
     }
     return reply.code(500).send({ error: "Internal server error" });
 });
+await app.register(authRoutes, { prefix: "/api/auth" });
+await app.register(userRoutes, { prefix: "/api/users" });
+await app.register(dealRoutes, { prefix: "/api/deals" });
+await app.register(transactionRoutes, { prefix: "/api/transactions" });
+await app.register(disputeRoutes, { prefix: "/api/disputes" });
+await app.register(notificationRoutes, { prefix: "/api/notifications" });
+await app.register(webhookRoutes, { prefix: "/api/webhooks" });
+await app.register(paymentRoutes, { prefix: "/api/payments" });
 const close = async () => {
     await app.close();
     await store.$disconnect();
