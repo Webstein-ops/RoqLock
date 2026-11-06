@@ -864,6 +864,21 @@ function App() {
   }
 
   function openAuth(mode) {
+    if (DEMO_MODE) {
+      const demoUser = {
+        id: "roq-demo-seller",
+        email: "demo@roqlock.local",
+        displayName: "Demo Seller",
+        role: "SELLER",
+        walletAddress: null,
+      };
+      sessionStorage.setItem("roq_token", "demo-session");
+      setToken("demo-session");
+      setUser(demoUser);
+      setActive("create");
+      setShowAuth(false);
+      return;
+    }
     setAuthMode(mode);
     setShowAuth(true);
   }
