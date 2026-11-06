@@ -38,9 +38,7 @@ export async function api(path, { token, method = "GET", body } = {}) {
     const detail = issue?.message
       ? `${field ? `${field}: ` : ""}${issue.message}`
       : "";
-    const requestError = new Error(detail || result?.error || `Request failed (${response.status}).`);
-    requestError.status = response.status;
-    throw requestError;
+    throw new Error(detail || result?.error || `Request failed (${response.status}).`);
   }
   return result;
 }

@@ -163,8 +163,6 @@ select { appearance: none; }
 .form-intro { color: #68778b; font-size: 16px; margin: 0 0 32px; line-height: 1.6; }
 .auth-form { display: grid; gap: 21px; }
 .auth-form label, .create-form label, .modal-form-fields label, .dispute-form label { display: grid; gap: 9px; font-size: 15px; color: #334258; font-weight: 600; position: relative; }
-.field-error { color: #9f453d; font-size: 13px; font-weight: 500; line-height: 1.5; }
-.create-form input[aria-invalid="true"] { border-color: #c76a5d; }
 .auth-form .button { margin-top: 4px; min-height: 54px; }
 .auth-switch { text-align: center; color: #6d7b8e; font-size: 15px; margin-top: 26px; }
 .auth-switch button { border: 0; background: none; color: #173d68; font-weight: 700; font-size: inherit; padding: 0 0 0 5px; }
