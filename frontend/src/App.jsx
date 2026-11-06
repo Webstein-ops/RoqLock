@@ -274,7 +274,7 @@ function Overview({ user, deals, onNavigate, onRefresh, onShare, onShipping, onW
       </div>
       <div className="section-heading"><div><h2>Recent transactions</h2><p>Your latest activity at a glance.</p></div><button className="text-button" onClick={() => onNavigate("deals")}>View all transactions <span>→</span></button></div>
       {deals.length
-        ? <DealTable deals={deals.slice(0, 5)} user={user} onShare={onShare} onShipping={onShipping} onView={onView} busy={busy} />
+        ? <DealTable deals={deals.slice(0, 5)} user={user} onShare={onShare} onShipping={onShipping} onView={onView} busy={busy} demoMode={demoMode} />
         : <div className="empty-state"><div className="empty-mark">◫</div><h3>You haven't created any deals yet.</h3><p>Create your first deal and share a private link with your buyer.</p>{user.role === "SELLER" && <button className="button button-primary empty-cta" onClick={() => onNavigate("create")}>Create your first deal <span>↗</span></button>}</div>}
     </section>
   );
@@ -284,7 +284,7 @@ function Metric({ label, value, suffix, icon, tone }) {
   return <div className="metric-card"><div className="metric-top"><span>{label}</span><span className={`metric-icon metric-icon-${tone}`}>{icon}</span></div><div className="metric-value">{value}<small>{suffix}</small></div><div className="metric-bottom"><span className="metric-line" /><span>Updated just now</span></div></div>;
 }
 
-function DealTable({ deals, user, onShare, onShipping, onView, busy }) {
+function DealTable({ deals, user, onShare, onShipping, onView, busy, demoMode = false }) {
   if (!deals.length) {
     return <div className="empty-state"><div className="empty-mark">◫</div><h3>No deals yet</h3><p>When you create or join a deal, it’ll show up here.</p></div>;
   }
@@ -299,7 +299,7 @@ function DealTable({ deals, user, onShare, onShipping, onView, busy }) {
           <StatusBadge status={deal.status} simulated={deal.simulated} />
           <span className="deal-date">{formatDate(deal.createdAt)}</span>
           <div className="deal-actions">
-            {user.role === "SELLER" && deal.status === "CREATED" && <button className="row-action" disabled={busy} onClick={() => onShare(deal)}>Share link</button>}
+            {user.role === "SELLER" && (deal.status === "CREATED" || (demoMode && deal.simulated)) && <button className="row-action" disabled={busy} onClick={() => onShare(deal)}>Share link</button>}
             {user.role === "SELLER" && deal.status === "FUNDS_SECURED" && <button className="row-action" disabled={busy} onClick={() => onShipping(deal)}>Mark shipped</button>}
             <button className="row-action row-view" onClick={() => onView(deal)}>View details</button>
           </div>
@@ -309,7 +309,7 @@ function DealTable({ deals, user, onShare, onShipping, onView, busy }) {
   );
 }
 
-function DealsPage({ user, deals, onRefresh, onShare, onShipping, onView, busy, onNavigate }) {
+function DealsPage({ user, deals, onRefresh, onShare, onShipping, onView, busy, onNavigate, demoMode }) {
   const [filter, setFilter] = useState("ALL");
   const visibleDeals = useMemo(() => filter === "ALL" ? deals : deals.filter((deal) => deal.status === filter), [deals, filter]);
   const filters = ["ALL", "CREATED", "FUNDS_SECURED", "SHIPPED", "COMPLETED", "DISPUTED"];
@@ -318,7 +318,7 @@ function DealsPage({ user, deals, onRefresh, onShare, onShipping, onView, busy, 
     <section className="page-content">
       <div className="page-heading"><div><div className="form-kicker">DEAL MANAGEMENT</div><h1>My transactions</h1><p>All the details, all in one place.</p></div><div className="heading-actions"><button className="button button-quiet" onClick={onRefresh}>↻ <span>Refresh</span></button>{user.role === "SELLER" && <button className="button button-primary" onClick={() => onNavigate("create")}>＋ New deal</button>}</div></div>
       <div className="filter-bar">{filters.map((item) => <button key={item} className={filter === item ? "filter-active" : ""} onClick={() => setFilter(item)}>{item === "ALL" ? "All deals" : statusNames[item] || item}</button>)}</div>
-      <DealTable deals={visibleDeals} user={user} onShare={onShare} onShipping={onShipping} onView={onView} busy={busy} />
+      <DealTable deals={visibleDeals} user={user} onShare={onShare} onShipping={onShipping} onView={onView} busy={busy} demoMode={demoMode} />
     </section>
   );
 }
@@ -901,7 +901,7 @@ function App() {
         {active === "create"
           ? <CreateDeal user={user} onCreate={handleCreate} busy={busy} error={error} onWallet={handleWallet} demoMode={DEMO_MODE} />
           : active === "deals"
-            ? <DealsPage user={user} deals={deals} onRefresh={() => refreshData().catch((requestError) => setNotice({ type: "error", text: requestError.message }))} onShare={handleShare} onShipping={handleShipping} onView={handleView} busy={busy} onNavigate={navigate} />
+            ? <DealsPage user={user} deals={deals} onRefresh={() => refreshData().catch((requestError) => setNotice({ type: "error", text: requestError.message }))} onShare={handleShare} onShipping={handleShipping} onView={handleView} busy={busy} onNavigate={navigate} demoMode={DEMO_MODE} />
             : active === "disputes"
               ? <DisputesPage disputes={disputes} onRefresh={() => refreshData().catch((requestError) => setNotice({ type: "error", text: requestError.message }))} busy={busy} />
               : <Overview user={user} deals={deals} onNavigate={navigate} onRefresh={() => refreshData().catch((requestError) => setNotice({ type: "error", text: requestError.message }))} onShare={handleShare} onShipping={handleShipping} onWallet={handleWallet} onView={handleView} busy={busy} demoMode={DEMO_MODE} />}
