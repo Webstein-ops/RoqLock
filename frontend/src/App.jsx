@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { isAddress } from "viem";
 import { API_URL, api, publicDealUrl } from "./api.js";
 
 const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === "true";
@@ -344,11 +345,19 @@ function DisputesPage({ disputes, onRefresh, busy }) {
 
 function CreateDeal({ onCreate, busy, error, user, onWallet, demoMode }) {
   const [form, setForm] = useState(initialForm);
+  const [buyerWalletError, setBuyerWalletError] = useState("");
   function update(key, value) { setForm((current) => ({ ...current, [key]: value })); }
 
   async function submit(event) {
     event.preventDefault();
+    const buyerWalletAddress = form.buyerWalletAddress.trim();
+    setBuyerWalletError("");
+    if (buyerWalletAddress && !isAddress(buyerWalletAddress)) {
+      setBuyerWalletError("Enter a valid EVM wallet address (0x followed by 40 hexadecimal characters), or leave this optional field blank.");
+      return;
+    }
     const body = Object.fromEntries(Object.entries(form).filter(([, value]) => value.trim() !== ""));
+    if (buyerWalletAddress) body.buyerWalletAddress = buyerWalletAddress;
     if (body.expectedDeliveryAt) body.expectedDeliveryAt = new Date(body.expectedDeliveryAt).toISOString();
     if (await onCreate({ ...body, ...(user.walletAddress ? { sellerWalletAddress: user.walletAddress } : {}) })) setForm(initialForm);
   }
@@ -367,7 +376,7 @@ function CreateDeal({ onCreate, busy, error, user, onWallet, demoMode }) {
             <label>Deal amount <span className="input-suffix">USDC</span><input required type="number" min="0.000001" max="999999999" step="0.000001" value={form.amountUsdc} onChange={(event) => update("amountUsdc", event.target.value)} placeholder="0.00" /></label>
             <label>Delivery method<input maxLength={160} value={form.deliveryMethod} onChange={(event) => update("deliveryMethod", event.target.value)} placeholder="e.g. Insured courier" /></label>
             <label>Buyer email <span className="optional">Optional</span><input type="email" value={form.buyerEmail} onChange={(event) => update("buyerEmail", event.target.value)} placeholder="buyer@example.com" /></label>
-            <label>Buyer wallet <span className="optional">Optional</span><input value={form.buyerWalletAddress} onChange={(event) => update("buyerWalletAddress", event.target.value)} placeholder="0x…" /></label>
+            <label>Buyer wallet <span className="optional">Optional</span><input value={form.buyerWalletAddress} onChange={(event) => { update("buyerWalletAddress", event.target.value); setBuyerWalletError(""); }} placeholder="0x followed by 40 hexadecimal characters" maxLength={42} autoComplete="off" spellCheck={false} aria-invalid={Boolean(buyerWalletError)} aria-describedby={buyerWalletError ? "buyer-wallet-error" : undefined} />{buyerWalletError && <span className="field-error" id="buyer-wallet-error" role="alert">{buyerWalletError}</span>}</label>
             <label>Expected delivery <span className="optional">Optional</span><input type="datetime-local" value={form.expectedDeliveryAt} onChange={(event) => update("expectedDeliveryAt", event.target.value)} /></label>
             <label className="field-full">Special conditions <span className="optional">Optional</span><textarea maxLength={5000} rows={3} value={form.conditions} onChange={(event) => update("conditions", event.target.value)} placeholder="Anything else you want your buyer to know." /></label>
           </div>
@@ -702,6 +711,21 @@ function App() {
     }
   }, []);
 
+  const handleUnauthorized = useCallback((requestError) => {
+    if (requestError.status !== 401) return false;
+    sessionStorage.removeItem("roq_token");
+    setToken(null);
+    setUser(null);
+    setDeals([]);
+    setNotifications([]);
+    setDisputes([]);
+    setActive("overview");
+    setAuthMode("login");
+    setShowAuth(true);
+    setNotice({ type: "error", text: "Your sign-in has expired. Sign in again to continue." });
+    return true;
+  }, []);
+
   const refreshData = useCallback(async () => {
     if (!token || !user) return;
     const dealPath = user.role === "SELLER" ? "/api/deals" : "/api/deals/buyer";
@@ -736,14 +760,12 @@ function App() {
       })
       .catch((requestError) => {
         if (!activeEffect) return;
-        sessionStorage.removeItem("roq_token");
-        setToken(null);
-        setUser(null);
-        setShowAuth(false);
-        setNotice({ type: "error", text: requestError.message });
+        if (!handleUnauthorized(requestError)) {
+          setNotice({ type: "error", text: requestError.message });
+        }
       });
     return () => { activeEffect = false; };
-  }, [token]);
+  }, [token, handleUnauthorized]);
 
   useEffect(() => {
     if (!token || !user) return undefined;
@@ -783,7 +805,7 @@ function App() {
       setNotice({ type: "success", text: "Deal created. Copy your private link to share it." });
       return true;
     } catch (requestError) {
-      setError(requestError.message);
+      if (!handleUnauthorized(requestError)) setError(requestError.message);
       return false;
     } finally {
       setBusy(false);
